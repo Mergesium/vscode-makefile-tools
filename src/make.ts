@@ -241,7 +241,7 @@ export async function buildTarget(triggeredBy: TriggeredBy, target: string, clea
     }
 
     // Prepare a notification popup
-    let config: string | undefined = configuration.getCurrentMakefileConfiguration();
+    let config: string | undefined = configuration.getCurrentMakefileConfiguration().name;
     let configAndTarget: string = config;
     if (target) {
         target = target.trimLeft();
@@ -422,7 +422,8 @@ export async function generateParseContent(progress: vscode.Progress<{}>,
     // we can afford to invoke make -pRrq (very quick even on large projects).
     // We make sure to give the regression tests suite a build log that already contains
     // targets information because we want to avoid invoking make for now.
-    let buildLog: string | undefined = configuration.getConfigurationBuildLog();
+    let buildLog: string | undefined = configuration.getCurrentMakefileConfiguration().buildLog;
+
     if (buildLog && (!forTargets || process.env['MAKEFILE_TOOLS_TESTING'] === '1')) {
         parseContent = util.readFile(buildLog);
         if (parseContent) {

@@ -406,7 +406,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand('makefile.outline.openBuildLogSetting', async () => {
-        await openSettings("makefile.buildLog");
+        await vscode.commands.executeCommand('workbench.action.openWorkspaceSettingsFile', { revealSetting: { key: 'makefile.configurations', edit: true }});
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand('makefile.outline.openBuildLogFile', async () => {
