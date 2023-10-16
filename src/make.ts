@@ -389,13 +389,9 @@ export async function doBuildTarget(progress: vscode.Progress<{}>, target: strin
 // Represents the content of the provided makefile.buildLog or a fresh output of make --dry-run
 // (which is also written into makefile.configurationCachePath).
 let parseContent: string | undefined;
-export function getParseContent(): string | undefined { return parseContent; }
-export function setParseContent(content: string): void { parseContent = content; }
 
 // The source file of parseContent (build log or configuration dryrun cache).
 let parseFile: string | undefined;
-export function getParseFile(): string | undefined { return parseFile; }
-export function setParseFile(file: string): void { parseFile = file; }
 
 // Targets need to parse a dryrun make invocation that does not include a target name
 // (other than default empty "" or the standard "all"), otherwise it would produce
@@ -495,18 +491,19 @@ export async function generateParseContent(progress: vscode.Progress<{}>,
     logger.message(`'${configuration.getConfigurationMakeCommand()} ${makeArgs.join(" ")}'`);
 
     try {
-        let dryrunFile : string = forTargets ? "./targets.log" : "./dryrun.log";
-        let extensionOutputFolder: string | undefined = configuration.getExtensionOutputFolder();
-        if (extensionOutputFolder) {
-            dryrunFile = path.join(extensionOutputFolder, dryrunFile);
-        }
-        dryrunFile = util.resolvePathToRoot(dryrunFile);
-        logger.message(`Writing the dry-run output: ${dryrunFile}`);
-
         const lineEnding: string = (process.platform === "win32" && process.env.MSYSTEM === undefined) ? "\r\n" : "\n";
+        let keepDryRuns: boolean = configuration.getKeepDryRuns();
+        let dryrunFile : string = forTargets ? "./targets.log" : configuration.getCurrentTarget() + ".dryrun.log";
+        if (keepDryRuns) {
+            let cachePath: string | undefined = configuration.getConfigurationCachePath();
+            if (cachePath) {
+                dryrunFile = path.join(cachePath, dryrunFile);
+            }
+            dryrunFile = util.resolvePathToRoot(dryrunFile);
+            logger.message(`Writing the dry-run output: ${dryrunFile}`);
 
-        util.writeFile(dryrunFile, `${configuration.getConfigurationMakeCommand()} ${makeArgs.join(" ")}${lineEnding}`);
-
+            util.writeFile(dryrunFile, `${configuration.getConfigurationMakeCommand()} ${makeArgs.join(" ")}${lineEnding}`);
+        }
         let completeOutput: string = "";
         let stderrStr: string = "";
         let heartBeat: number = Date.now();
@@ -514,7 +511,9 @@ export async function generateParseContent(progress: vscode.Progress<{}>,
         let stdout: any = (result: string): void => {
             const appendStr: string = `${result} ${lineEnding}`;
             completeOutput += appendStr;
-            fs.appendFileSync(dryrunFile, appendStr);
+            if (keepDryRuns) {
+                fs.appendFileSync(dryrunFile, appendStr);
+            }
 
             progress.report({
               increment: 1,
@@ -537,7 +536,9 @@ export async function generateParseContent(progress: vscode.Progress<{}>,
             if (process.env['MAKEFILE_TOOLS_TESTING'] !== '1') {
                appendStr += lineEnding;
             }
-            fs.appendFileSync(dryrunFile, appendStr);
+            if (keepDryRuns) {
+                fs.appendFileSync(dryrunFile, appendStr);
+            }
             stderrStr += appendStr;
 
             // Sometimes there is useful information coming via the stderr
@@ -553,7 +554,9 @@ export async function generateParseContent(progress: vscode.Progress<{}>,
                 vscode.window.showWarningMessage("Dryrun timeout. See Makefile Tools Output Channel for details.");
                 logger.message("Dryrun timeout. Verify that the make command works properly " +
                 "in your development terminal (it could wait for stdin).");
-                logger.message(`Double check the dryrun output log: ${dryrunFile}`);
+                if (keepDryRuns) {
+                    logger.message(`Double check the dryrun output log: ${dryrunFile}`);
+                }
 
                 // It's enough to show this warning popup once.
                 clearInterval(timeout);
@@ -566,7 +569,7 @@ export async function generateParseContent(progress: vscode.Progress<{}>,
         let elapsedTime: number = util.elapsedTimeSince(startTime);
         logger.message(`Generating dry-run elapsed time: ${elapsedTime}`);
 
-        parseFile = dryrunFile;
+        parseFile = keepDryRuns ? dryrunFile : (dryrunFile + " (not saved)");
         parseContent = completeOutput;
 
         // The error codes returned by the targets invocation (make -pRrq) mean something else

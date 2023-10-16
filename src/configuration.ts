@@ -86,7 +86,9 @@ export async function setCurrentMakefileConfiguration(configuration: string | un
         isDefault: true
     };
     let cachePath : string | undefined = getConfigurationCachePath();
-    if (cachePath)
+    if (cachePath && (
+                keepDryRuns
+            ))
         util.createDirectorySync(cachePath);
     statusBar.setConfiguration(currentMakefileConfiguration.name);
     await extension.updateBuildLogPresent(currentMakefileConfiguration.buildLog ? true : false);
@@ -485,6 +487,15 @@ export async function readDryrunSwitches(): Promise<void> {
     if (dryrunSwitches && dryrunSwitches.length > 0) {
         logger.message(`Dry-run switches: '${dryrunSwitches?.join("', '")}'`);
     }
+}
+
+// Keep the dry-run output in the configuration directory?
+//   true : file will be saved as ${makeDirectory}/.vscode/${currentTarget}.dryrun.log
+//   false: file will be not be saved
+let keepDryRuns: boolean;
+export function getKeepDryRuns(): boolean { return keepDryRuns; }
+export async function readkeepDryRuns() : Promise<void> {
+    keepDryRuns = await util.getExpandedSetting<boolean>("keepDryRuns") || false;
 }
 
 // Currently, the makefile extension supports debugging only an executable.
@@ -1081,6 +1092,7 @@ export async function initFromSettings(activation: boolean = false): Promise<voi
     await readPostConfigureScript();
     await readAlwaysPostConfigure();
     await readDryrunSwitches();
+    await readkeepDryRuns();
     await readAdditionalCompilerNames();
     await readExcludeCompilerNames();
     await readMakefileConfigurations(currentMakefileConfigurationName);
@@ -1355,6 +1367,13 @@ export async function initFromSettings(activation: boolean = false): Promise<voi
                 extension.getState().configureDirty = extension.getState().configureDirty ||
                                                       !buildLog || !util.checkFileExistsSync(buildLog);
                 await readDryrunSwitches();
+                updatedSettingsSubkeys.push(subKey);
+            }
+
+            subKey = "keepDryRuns";
+            let updatedkeepDryRuns : boolean | undefined = await util.getExpandedSetting<boolean>(subKey);
+            if (updatedkeepDryRuns !== keepDryRuns) {
+                await readkeepDryRuns();
                 updatedSettingsSubkeys.push(subKey);
             }
 

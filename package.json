@@ -397,6 +397,12 @@
                     },
                     "scope": "resource"
                 },
+                "makefile.keepDryRuns": {
+                    "type": "boolean",
+                    "markdownDescription": "%makefile-tools.configuration.makefile.keepDryRuns.markdownDescription%",
+                    "default": false,
+                    "scope": "resource"
+                },
                 "makefile.additionalCompilerNames": {
                     "type": "array",
                     "default": [],
