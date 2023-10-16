@@ -319,35 +319,6 @@ export async function readLoggingLevel(): Promise<void> {
     logger.message(`Logging level: ${loggingLevel}`);
 }
 
-let extensionOutputFolder: string | undefined;
-export function getExtensionOutputFolder(): string | undefined { return extensionOutputFolder; }
-export function setExtensionOutputFolder(folder: string): void { extensionOutputFolder = folder; }
-
-// Read from settings the path to a folder where the extension is dropping various output files
-// (like extension.log, dry-run.log, targets.log).
-// Useful to control where such potentially large files should reside.
-export async function readExtensionOutputFolder(): Promise<void> {
-    extensionOutputFolder = await util.getExpandedSetting<string>("extensionOutputFolder");
-    if (extensionOutputFolder) {
-        extensionOutputFolder = util.resolvePathToRoot(extensionOutputFolder);
-    } else {
-        extensionOutputFolder = extension.extensionContext.storagePath;
-    }
-
-    // Check one more time because the value can still be undefined if no folder was opened.
-    if (extensionOutputFolder) {
-        if (!util.checkDirectoryExistsSync(extensionOutputFolder)) {
-            if (!util.createDirectorySync(extensionOutputFolder)) {
-                extensionOutputFolder = extension.extensionContext.storagePath;
-                logger.message(`Extension output folder does not exist and could not be created: ${extensionOutputFolder}.`);
-                logger.message(`Reverting to '${extensionOutputFolder}' default for extension output folder.`);
-                return;
-            }
-        }
-        logger.message(`Dropping various extension output files at ${extensionOutputFolder}`);
-    }
-}
-
 let extensionLog: string | undefined;
 export function getExtensionLog(): string | undefined { return extensionLog; }
 export function setExtensionLog(path: string): void { extensionLog = path; }
@@ -363,14 +334,7 @@ export function setExtensionLog(path: string): void { extensionLog = path; }
 export async function readExtensionLog(): Promise<void> {
     extensionLog = await util.getExpandedSetting<string>("extensionLog");
     if (extensionLog) {
-        // If there is a directory defined within the extension log path,
-        // honor it and don't append to extensionOutputFolder.
-        let parsePath: path.ParsedPath = path.parse(extensionLog);
-        if (extensionOutputFolder && !parsePath.dir) {
-            extensionLog = path.join(extensionOutputFolder, extensionLog);
-        } else {
-            extensionLog = util.resolvePathToRoot(extensionLog);
-        }
+        extensionLog = util.resolvePathToRoot(extensionLog);
 
         logger.message(`Writing extension log at ${extensionLog}`);
     }
@@ -1078,9 +1042,8 @@ export function initFromState(): void {
 // or after any change in the configuration/build-target workspace state variables, in which case
 // we need a refresh of all settings expanding ${configuration} or ${buildTarget}.
 export async function initFromSettings(activation: boolean = false): Promise<void> {
-    // Read first anything related to the output folder and the extension log,
+    // Read first anything related to the extension log,
     // to be able to document any upcoming reads.
-    await readExtensionOutputFolder();
     await readExtensionLog();
 
     // Delete the extension log file, if exists, even if we lose what we logged earlier
@@ -1241,34 +1204,10 @@ export async function initFromSettings(activation: boolean = false): Promise<voi
                 updatedSettingsSubkeys.push(subKey);
             }
 
-            subKey = "extensionOutputFolder";
-            let updatedExtensionOutputFolder : string | undefined = await util.getExpandedSetting<string>(subKey);
-            if (updatedExtensionOutputFolder) {
-                updatedExtensionOutputFolder = util.resolvePathToRoot(updatedExtensionOutputFolder);
-                if (!util.checkDirectoryExistsSync(updatedExtensionOutputFolder) &&
-                    !util.createDirectorySync(updatedExtensionOutputFolder)) {
-                     // No logging necessary about not being able to create the directory,
-                     // readExtensionOutputFolder called below will complain if it's the case.
-                     updatedExtensionOutputFolder = undefined;
-                  }
-            }
-            if (updatedExtensionOutputFolder !== extensionOutputFolder) {
-                // No IntelliSense update needed.
-                await readExtensionOutputFolder();
-                updatedSettingsSubkeys.push(subKey);
-            }
-
             subKey = "extensionLog";
             let updatedExtensionLog : string | undefined = await util.getExpandedSetting<string>(subKey);
             if (updatedExtensionLog) {
-                // If there is a directory defined within the extension log path,
-                // honor it and don't append to extensionOutputFolder.
-                let parsePath: path.ParsedPath = path.parse(updatedExtensionLog);
-                if (extensionOutputFolder && !parsePath.dir) {
-                    updatedExtensionLog = path.join(extensionOutputFolder, updatedExtensionLog);
-                } else {
-                    updatedExtensionLog = util.resolvePathToRoot(updatedExtensionLog);
-                }
+                updatedExtensionLog = util.resolvePathToRoot(updatedExtensionLog);
             }
             if (updatedExtensionLog !== extensionLog) {
                 // No IntelliSense update needed.
