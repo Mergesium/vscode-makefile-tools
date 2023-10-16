@@ -1135,6 +1135,7 @@ export async function configure(triggeredBy: TriggeredBy, updateTargets: boolean
       // Rewrite the configuration cache according to the last updates of the internal arrays,
       // but not if the configure was cancelled and not while running regression tests.
       if (
+        configuration.getKeepConfigurationCache() &&
         configurationCache &&
         retc !== ConfigureBuildReturnCodeTypes.cancelled &&
         process.env["MAKEFILE_TOOLS_TESTING"] !== "1"
@@ -1446,7 +1447,7 @@ export async function loadConfigurationFromCache(progress: vscode.Progress<{}>, 
 
     await util.scheduleAsyncTask(async () => {await extension.registerCppToolsProvider(); });
     let cachePath: string | undefined = configuration.getConfigurationCachePath();
-    if (cachePath) {
+    if (configuration.getKeepConfigurationCache() && cachePath) {
         let cacheFile: string = path.join(cachePath, configuration.getCurrentTarget() + ".cache");
         let content: string | undefined = util.readFile(cacheFile);
         if (content) {

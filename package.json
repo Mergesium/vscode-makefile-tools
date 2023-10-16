@@ -403,6 +403,12 @@
                     "default": false,
                     "scope": "resource"
                 },
+                "makefile.keepConfigurationCache": {
+                    "type": "boolean",
+                    "markdownDescription": "%makefile-tools.configuration.makefile.keepConfigurationCache.markdownDescription%",
+                    "default": false,
+                    "scope": "resource"
+                },
                 "makefile.additionalCompilerNames": {
                     "type": "array",
                     "default": [],

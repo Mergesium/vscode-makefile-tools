@@ -87,6 +87,7 @@ export async function setCurrentMakefileConfiguration(configuration: string | un
     };
     let cachePath : string | undefined = getConfigurationCachePath();
     if (cachePath && (
+                keepConfigurationCache ||
                 keepDryRuns
             ))
         util.createDirectorySync(cachePath);
@@ -496,6 +497,16 @@ let keepDryRuns: boolean;
 export function getKeepDryRuns(): boolean { return keepDryRuns; }
 export async function readkeepDryRuns() : Promise<void> {
     keepDryRuns = await util.getExpandedSetting<boolean>("keepDryRuns") || false;
+}
+
+// Keep the configurationCache in the configuration directory?
+//   true : file will be saved as ${makeDirectory}/.vscode/${currentTarget}.cache,
+//          and loaded at next reload, before dry-running
+//   false: file will be not be saved
+let keepConfigurationCache: boolean;
+export function getKeepConfigurationCache(): boolean { return keepConfigurationCache; }
+export async function readkeepConfigurationCache() : Promise<void> {
+    keepConfigurationCache = await util.getExpandedSetting<boolean>("keepConfigurationCache") || false;
 }
 
 // Currently, the makefile extension supports debugging only an executable.
@@ -1093,6 +1104,7 @@ export async function initFromSettings(activation: boolean = false): Promise<voi
     await readAlwaysPostConfigure();
     await readDryrunSwitches();
     await readkeepDryRuns();
+    await readkeepConfigurationCache();
     await readAdditionalCompilerNames();
     await readExcludeCompilerNames();
     await readMakefileConfigurations(currentMakefileConfigurationName);
@@ -1374,6 +1386,13 @@ export async function initFromSettings(activation: boolean = false): Promise<voi
             let updatedkeepDryRuns : boolean | undefined = await util.getExpandedSetting<boolean>(subKey);
             if (updatedkeepDryRuns !== keepDryRuns) {
                 await readkeepDryRuns();
+                updatedSettingsSubkeys.push(subKey);
+            }
+
+            subKey = "keepConfigurationCache";
+            let updatedkeepConfigurationCache : boolean | undefined = await util.getExpandedSetting<boolean>(subKey);
+            if (keepConfigurationCache !== keepConfigurationCache) {
+                await readkeepConfigurationCache();
                 updatedSettingsSubkeys.push(subKey);
             }
 
