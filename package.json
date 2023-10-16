@@ -384,12 +384,6 @@
                     "default": "",
                     "scope": "resource"
                 },
-                "makefile.configurationCachePath": {
-                    "type": "string",
-                    "description": "%makefile-tools.configuration.makefile.configurationCachePath.description%",
-                    "default": "",
-                    "scope": "resource"
-                },
                 "makefile.dryrunSwitches": {
                     "type": "array",
                     "default": [

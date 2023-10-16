@@ -85,6 +85,9 @@ export async function setCurrentMakefileConfiguration(configuration: string | un
         buildLog: buildLog,
         isDefault: true
     };
+    let cachePath : string | undefined = getConfigurationCachePath();
+    if (cachePath)
+        util.createDirectorySync(cachePath);
     statusBar.setConfiguration(currentMakefileConfiguration.name);
     await extension.updateBuildLogPresent(currentMakefileConfiguration.buildLog ? true : false);
 }
@@ -422,34 +425,15 @@ export async function readAlwaysPostConfigure(): Promise<void> {
     logger.message(`Always post-configure: ${alwaysPostConfigure}`);
 }
 
-let configurationCachePath: string | undefined;
-export function getConfigurationCachePath(): string | undefined { return configurationCachePath; }
-export function setConfigurationCachePath(path: string): void { configurationCachePath = path; }
-
-// Read from settings the path to a cache file containing the output of the last dry-run make command.
-// This file is recreated when opening a project, when changing the build configuration or the build target
-// and when the settings watcher detects a change of any properties that may impact the dryrun output.
-export async function readConfigurationCachePath(): Promise<void> {
-    let oldConfigurationCachePath = configurationCachePath;
-    configurationCachePath = await util.getExpandedSetting<string>("configurationCachePath");
-    if (!configurationCachePath && extensionOutputFolder) {
-        configurationCachePath = path.join(extensionOutputFolder, 'configurationCache.log');
-    }
-
-    if (configurationCachePath) {
-        // If there is a directory defined within the configuration cache path,
-        // honor it and don't append to extensionOutputFolder.
-        let parsePath: path.ParsedPath = path.parse(configurationCachePath);
-        if (extensionOutputFolder && !parsePath.dir) {
-            configurationCachePath = path.join(extensionOutputFolder, configurationCachePath);
-        } else {
-            configurationCachePath = util.resolvePathToRoot(configurationCachePath);
-        }
-
-        if (oldConfigurationCachePath !== configurationCachePath) {
-            logger.message(`Configurations cached at ${configurationCachePath}`);
-        }
-    }
+// The configuration cache is stored in ${makeDirectory}/.vscode/${currentTarget}.cache
+// Ie, each config is keyed to the configuration and target
+// TODO: The user should have the option to turn off the cache because it may become decoherent with the
+// workspace when the source is changed (eg, diff branch checked out) between vscode reloads.
+export function getConfigurationCachePath(): string | undefined {
+    if (currentMakefileConfiguration.makeDirectory)
+        return path.join(currentMakefileConfiguration.makeDirectory, ".vscode");
+    else
+        return undefined;
 }
 
 let compileCommandsPath: string | undefined;
@@ -1088,7 +1072,6 @@ export async function initFromSettings(activation: boolean = false): Promise<voi
     }
 
     await readLoggingLevel();
-    await readConfigurationCachePath();
     await readMakePath();
     await readMakefilePath();
     await readMakeDirectory();
@@ -1302,17 +1285,6 @@ export async function initFromSettings(activation: boolean = false): Promise<voi
             let updatedAlwaysPostConfigure: boolean | undefined = await util.getExpandedSetting<boolean>(subKey);
             if (updatedAlwaysPostConfigure !== alwaysPostConfigure) {
                 await readAlwaysPostConfigure();
-                updatedSettingsSubkeys.push(subKey);
-            }
-
-            subKey = "configurationCachePath";
-            let oldConfigurationCachePath = configurationCachePath;
-            await readConfigurationCachePath();
-            if (oldConfigurationCachePath !== configurationCachePath) {
-                // A change in makefile.configurationCachePath should trigger an IntelliSense update
-                // only if the extension is not currently reading from a build log.
-                extension.getState().configureDirty = extension.getState().configureDirty ||
-                                                      !buildLog || !util.checkFileExistsSync(buildLog);
                 updatedSettingsSubkeys.push(subKey);
             }
 

@@ -53,7 +53,6 @@
 	"makefile-tools.configuration.makefile.buildLog.description": "Der Pfad zum Buildprotokoll, das gelesen wird, um einen Probelauf zu umgehen",
 	"makefile-tools.configuration.makefile.extensionOutputFolder.description": "Der Pfad zu verschiedenen Ausgabedateien, die von der Erweiterung erstellt werden. Standardmäßig wird der Speicherort des VS Code-Arbeitsbereichs verwendet.",
 	"makefile-tools.configuration.makefile.extensionLog.description": "Der Pfad zu einer Ausgabedatei, in der der gesamte Inhalt aus dem Makefile-Ausgabekanal gespeichert wird. Standardmäßig wird der Wert der Einstellung \"makefile.extensionOutputFolder\" verwendet.",
-	"makefile-tools.configuration.makefile.configurationCachePath.description": "Der Pfad zu einer Cachedatei, in der die Ausgabe des letzten \"dry-run make\"-Befehls gespeichert wird. Ist er nicht festgelegt, wird eine Datei mit dem Namen \"configurationCache.log\" in dem Pfad gespeichert, der durch die Einstellung \"makefile.extensionOutputFolder\" angegeben wird.",
 	"makefile-tools.configuration.makefile.dryrunSwitches.description": "Argumente, die an den Aufruf „dry-run make“ übergeben werden sollen",
 	"makefile-tools.configuration.makefile.additionalCompilerNames.description": "Namen von Compiler-Tools, die zur Liste bekannter Erweiterungen hinzugefügt werden sollen",
 	"makefile-tools.configuration.makefile.excludeCompilerNames.description": "Namen von Compiler-Tools, die aus der Liste bekannter Erweiterungen ausgeschlossen werden sollen",

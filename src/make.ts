@@ -1016,15 +1016,13 @@ export async function configure(triggeredBy: TriggeredBy, updateTargets: boolean
   }
 
   // Identify for telemetry whether this configure will read configuration constructs from cache.
-  let readCache: boolean = false;
   let configurationCachePath: string | undefined =
     configuration.getConfigurationCachePath();
-  if (
-    configurationCachePath &&
-    util.checkFileExistsSync(configurationCachePath)
-  ) {
-    readCache = true;
-  }
+  let configurationCache: string | undefined =
+    configurationCachePath ?
+        path.join(configurationCachePath, configuration.getCurrentTarget() + ".cache") : undefined;
+  let readCache: boolean = configurationCache ?
+    util.checkFileExistsSync(configurationCache) : false;
 
   let compileCommandsPath: string | undefined =
     configuration.getCompileCommandsPath();
@@ -1134,12 +1132,12 @@ export async function configure(triggeredBy: TriggeredBy, updateTargets: boolean
       // Rewrite the configuration cache according to the last updates of the internal arrays,
       // but not if the configure was cancelled and not while running regression tests.
       if (
-        configurationCachePath &&
+        configurationCache &&
         retc !== ConfigureBuildReturnCodeTypes.cancelled &&
         process.env["MAKEFILE_TOOLS_TESTING"] !== "1"
       ) {
         util.writeFile(
-          configurationCachePath,
+          configurationCache,
           JSON.stringify(ConfigurationCache)
         );
       }
@@ -1446,11 +1444,12 @@ export async function loadConfigurationFromCache(progress: vscode.Progress<{}>, 
     await util.scheduleAsyncTask(async () => {await extension.registerCppToolsProvider(); });
     let cachePath: string | undefined = configuration.getConfigurationCachePath();
     if (cachePath) {
-        let content: string | undefined = util.readFile(cachePath);
+        let cacheFile: string = path.join(cachePath, configuration.getCurrentTarget() + ".cache");
+        let content: string | undefined = util.readFile(cacheFile);
         if (content) {
             try {
                 progress.report({ increment: 1, message: localize("make.configure.cache", "Configuring from cache") });
-                logger.message(`Configuring from cache: ${cachePath}`);
+                logger.message(`Configuring from cache: ${cacheFile}`);
                 let configurationCache: ConfigurationCache = {
                     buildTargets: [],
                     launchTargets: [],

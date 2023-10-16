@@ -53,7 +53,6 @@
 	"makefile-tools.configuration.makefile.buildLog.description": "Il percorso del log di compilazione è letto per ignorare un dry-run",
 	"makefile-tools.configuration.makefile.extensionOutputFolder.description": "Il percorso di vari file di output prodotti dall'estensione. Predefinito alla posizione di archiviazione dell’area di lavoro di VS Code.",
 	"makefile-tools.configuration.makefile.extensionLog.description": "Il percorso di un file di output che archivia tutto il contenuto dal canale di output Makefile. Predefinito al valore dell'impostazione 'makefile.extensionOutputFolder'.",
-	"makefile-tools.configuration.makefile.configurationCachePath.description": "Il percorso di un file di cache che archivia l'output dell'ultimo comando di prova. Se non è impostato, un file denominato 'configurationCache.log' viene archiviato nel percorso specificato dall'impostazione 'makefile.extensionOutputFolder'.",
 	"makefile-tools.configuration.makefile.dryrunSwitches.description": "Argomenti da passare alla chiamata di dry-run make",
 	"makefile-tools.configuration.makefile.additionalCompilerNames.description": "Nomi degli strumenti del compilatore da aggiungere all'elenco noto dell'estensione",
 	"makefile-tools.configuration.makefile.excludeCompilerNames.description": "Nomi degli strumenti del compilatore da escludere dall'elenco noto dell'estensione",

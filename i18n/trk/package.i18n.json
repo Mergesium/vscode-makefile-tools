@@ -53,7 +53,6 @@
 	"makefile-tools.configuration.makefile.buildLog.description": "Provayı atlamak için okunan derleme günlüğüne giden yol",
 	"makefile-tools.configuration.makefile.extensionOutputFolder.description": "Uzantı tarafından üretilen çeşitli çıkış dosyalarının yolu. Varsayılan olarak VS Code çalışma alanı depolama konumunu alır.",
 	"makefile-tools.configuration.makefile.extensionLog.description": "Derleme Görevleri Dosyası çıkış kanalından tüm içeriği depolayan bir çıkış dosyasının yolu. Varsayılan olarak 'makefile.extensionOutputFolder' ayarının değerini alır.",
-	"makefile-tools.configuration.makefile.configurationCachePath.description": "Son prova make komutunun çıkışını depolayan önbellek dosyasının yolu. Ayar kaldırıldığında, 'makefile.extensionOutputFolder' ayarı tarafından belirtilen yolda 'configurationCache.log' adlı bir dosya depolanır.",
 	"makefile-tools.configuration.makefile.dryrunSwitches.description": "Prova make çağrısına geçirilecek bağımsız değişkenler",
 	"makefile-tools.configuration.makefile.additionalCompilerNames.description": "Bilinen uzantı listesine eklenecek derleyici araçlarının adları",
 	"makefile-tools.configuration.makefile.excludeCompilerNames.description": "Bilinen uzantı listesinden çıkarılacak derleyici araçlarının adları",
