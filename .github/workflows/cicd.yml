@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     timeout-minutes: 5
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         config:
           - { os: ubuntu-20.04, name: linux }
